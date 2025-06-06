@@ -6,6 +6,7 @@ Cadeira: Programação IV
 
 #Bibliotecas de GUI e de acessos a API
 import tkinter as tk
+import pygame
 import random
 import requests
 import threading
@@ -33,6 +34,10 @@ coresFundo = ["darkblue", "darkgreen", "darkred", "purple4", "midnightblue"]
 textoPontos = None
 textoNivel = None
 textoPlaneta = None
+
+#função para introduzir o sounds de colisão
+pygame.mixer.init()
+somColisao = pygame.mixer.Sound("soundseffect.mp3") 
 
 #função que permite acabar o jogo e fechar o programa
 def sairDoJogo():
@@ -166,6 +171,8 @@ def verificarColisoes():
             # Verifica colisão simples (distância entre centros)
             distancia = ((naveX - planetaX)**2 + (naveY - planetaY)**2)**0.5
             if distancia < planeta_raio + 20:  # 20 é o raio aproximado da nave
+                #carrega o som
+                somColisao.play()
                 pontos += 1
                 canvas.delete(planeta)
                 planetas.remove(planeta)
