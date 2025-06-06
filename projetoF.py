@@ -98,7 +98,6 @@ def iniciarJogo():
         root.bind("<Up>", moveNave)
         root.bind("<Down>", moveNave)
         root.bind("<Escape>", lambda e: startPauseJogo())
-        
         # Iniciar threads para o jogo e API dependendo do start ou pause para controlar o mapa
         criarPlaneta()
         movePlanetas()
@@ -206,25 +205,31 @@ def mudarNivel():
 def nomePlaneta():
     # API NASA para encontrar o nome do planeta
     global planetaNome, textoPlaneta, nivel
-    
+
     def tarefa():
-        try:
+        try: 
             url = "https://exoplanetarchive.ipac.caltech.edu/TAP/sync?query=select+pl_name+from+ps+where+pl_name+is+not+null&format=json"
-            resposta = requests.get(url, timeout=5)
-            dados = resposta.json()
             
-            if dados and len(dados) > 0:
-                # Seleciona um planeta baseado no nível para variedade
-                index = nivel - 1
-                planetaNome = dados[index]['pl_name']
-            else:
-                planetaNome = "Planeta Desconhecido"
+            response = requests.get(url)
+            response.raise_for_status()
+            data = response.json()
+            if isinstance(data, list) and len(data) > nivel:
+                planetaNome = data[nivel]['pl_name']
+            else:     
+                planetaNome= "Desconhecido"
+                
         except Exception as e:
             print(f"Erro ao acessar API: {e}")
             planetaNome = "API Indisponível - Modo Offline"
         
-        canvas.itemconfig(textoPlaneta, text=f"Planeta: {planetaNome}")
-    # Executa em uma thread separada para não travar o jogo
-    threading.Thread(target=tarefa, daemon=True).start()
+        def atualizarCanvas():
+            canvas.itemconfig(textoPlaneta, text=f"Planeta: {planetaNome}")
+
+        # Usar o método `after()` para garantir que o Tkinter atualiza corretamente
+        canvas.after(0, atualizarCanvas)
+
+    # Iniciar a thread para executar a tarefa
+    thread = threading.Thread(target=tarefa)
+    thread.start()
 
 iniciarJogo()
